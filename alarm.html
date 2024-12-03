@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Customizable Alarm App</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background-color: #1a2238;
+      color: #ffffff;
+      background-size: cover;
+      background-position: center;
+    }
+    .container {
+      text-align: center;
+      padding: 20px;
+    }
+    .header {
+      font-size: 24px;
+      margin-top: 20px;
+    }
+    .sub-header {
+      margin: 10px 0;
+      font-size: 18px;
+      color: #d1d5db;
+    }
+    .upload-section, .alarm-section, .sound-section {
+      margin: 20px 0;
+    }
+    .btn {
+      padding: 10px 20px;
+      background-color: #5865f2;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .btn:hover {
+      background-color: #4752c4;
+    }
+    .alarm-list {
+      margin-top: 20px;
+      font-size: 16px;
+      text-align: left;
+      max-width: 500px;
+      margin: auto;
+    }
+    .alarm-item {
+      margin: 10px 0;
+      display: flex;
+      justify-content: space-between;
+      padding: 10px;
+      background-color: #2b3340;
+      border-radius: 5px;
+    }
+    .background-preview {
+      margin-top: 10px;
+      border-radius: 10px;
+      max-width: 100%;
+      height: 200px;
+      object-fit: cover;
+    }
+    input[type="file"], input[type="time"], input[type="url"] {
+      margin: 10px 0;
+      padding: 10px;
+      border-radius: 5px;
+      border: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">Customizable Alarm App</div>
+    <div class="sub-header">Set alarms and customize your experience</div>
+
+    <!-- Upload Background Section -->
+    <div class="upload-section">
+      <h3>Upload Background Theme</h3>
+      <input type="file" id="backgroundInput" accept="image/*">
+      <img id="backgroundPreview" class="background-preview" alt="Background Preview">
+    </div>
+
+    <!-- Alarm Setting Section -->
+    <div class="alarm-section">
+      <h3>Set Alarm</h3>
+      <input type="time" id="alarmTime">
+      <button class="btn" id="setAlarmButton">Set Alarm</button>
+    </div>
+
+    <!-- Sound Selection Section -->
+    <div class="sound-section">
+      <h3>Upload Alarm Sound (URL)</h3>
+      <input type="url" id="soundInput" placeholder="Enter sound URL">
+      <button class="btn" id="playSoundButton">Preview Sound</button>
+    </div>
+
+    <!-- Alarm List -->
+    <div class="alarm-list" id="alarmList">
+      <h3>Active Alarms</h3>
+    </div>
+  </div>
+
+  <audio id="alarmAudio"></audio>
+
+  <script>
+    const backgroundInput = document.getElementById("backgroundInput");
+    const backgroundPreview = document.getElementById("backgroundPreview");
+    const setAlarmButton = document.getElementById("setAlarmButton");
+    const alarmTimeInput = document.getElementById("alarmTime");
+    const soundInput = document.getElementById("soundInput");
+    const alarmAudio = document.getElementById("alarmAudio");
+    const alarmList = document.getElementById("alarmList");
+    const playSoundButton = document.getElementById("playSoundButton");
+
+    let alarms = [];
+
+    // Background Upload
+    backgroundInput.addEventListener("change", (event) => {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          document.body.style.backgroundImage = `url('${e.target.result}')`;
+          backgroundPreview.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    // Set Alarm
+    setAlarmButton.addEventListener("click", () => {
+      const alarmTime = alarmTimeInput.value;
+      if (alarmTime) {
+        alarms.push(alarmTime);
+        updateAlarmList();
+        alert("Alarm set for " + alarmTime);
+      } else {
+        alert("Please select a valid time.");
+      }
+    });
+
+    // Play Sound Preview
+    playSoundButton.addEventListener("click", () => {
+      const soundURL = soundInput.value;
+      if (soundURL) {
+        alarmAudio.src = soundURL;
+        alarmAudio.play();
+      } else {
+        alert("Please enter a valid URL.");
+      }
+    });
+
+    // Check Alarms
+    setInterval(() => {
+      const now = new Date();
+      const currentTime = now.toTimeString().slice(0, 5);
+      if (alarms.includes(currentTime)) {
+        if (alarmAudio.src) {
+          alarmAudio.play();
+        } else {
+          alert("Wake up! Alarm time: " + currentTime);
+        }
+        alarms = alarms.filter((time) => time !== currentTime); // Remove triggered alarm
+        updateAlarmList();
+      }
+    }, 1000);
+
+    // Update Alarm List
+    function updateAlarmList() {
+      alarmList.innerHTML = `<h3>Active Alarms</h3>`;
+      alarms.forEach((alarm) => {
+        const alarmItem = document.createElement("div");
+        alarmItem.className = "alarm-item";
+        alarmItem.innerHTML = `<span>${alarm}</span> <button class="btn btn-remove" data-time="${alarm}">Remove</button>`;
+        alarmList.appendChild(alarmItem);
+      });
+
+      // Remove Alarm
+      document.querySelectorAll(".btn-remove").forEach((btn) => {
+        btn.addEventListener("click", (e) => {
+          const time = e.target.getAttribute("data-time");
+          alarms = alarms.filter((alarm) => alarm !== time);
+          updateAlarmList();
+        });
+      });
+    }
+  </script>
+</body>
+</html>
